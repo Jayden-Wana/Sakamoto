@@ -11,4 +11,12 @@ actor CkBTCVault {
             case (?balance) { return balance; };
         };
     }
+
+    public shared (msg) func deposit(amount: Nat) : async Result.Result<Nat, Text> {
+        let id = msg.caller;
+        let balance = get_balance(id);
+        let new_balance = balance + amount;
+        accounts := Trie.put(accounts, id, new_balance);
+        return #ok(new_balance);
+    }
 }
