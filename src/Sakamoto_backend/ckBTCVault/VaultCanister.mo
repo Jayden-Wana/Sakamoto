@@ -6,9 +6,13 @@
 import Principal "mo:base/Principal";
 import HashMap "mo:base/HashMap";
 import Iter "mo:base/Iter";
+import Time "mo:base/Time";
 import Result "mo:base/Result";
 import Nat "mo:base/Nat";
+import Int "mo:base/Int";
+import Array "mo:base/Array";
 import Option "mo:base/Option";
+import Hash "mo:base/Hash";
 
 actor class VaultCanister() = this {
     
@@ -23,9 +27,28 @@ actor class VaultCanister() = this {
         Principal.hash
     );
 
+    // Transaction history
+    type VaultTransaction = {
+        txType : Text; // "deposit" or "withdrawal"
+        user : Principal;
+        amount : Nat;
+        timestamp : Int;
+        txId : Nat;
+    };
+
+    private stable var transactionCounter : Nat = 0;
+    private stable var transactionEntries : [(Nat, VaultTransaction)] = [];
+    
+    private var transactions = HashMap.HashMap<Nat, VaultTransaction>(
+        10,
+        Nat.equal,
+        Hash.hash
+    );
+
     // Upgrade hooks
     system func preupgrade() {
         vaultBalanceEntries := Iter.toArray(vaultBalances.entries());
+        transactionEntries := Iter.toArray(transactions.entries());
     };
 
     system func postupgrade() {
@@ -35,7 +58,14 @@ actor class VaultCanister() = this {
             Principal.equal,
             Principal.hash
         );
+        transactions := HashMap.fromIter<Nat, VaultTransaction>(
+            transactionEntries.vals(),
+            10,
+            Nat.equal,
+            Hash.hash
+        );
         vaultBalanceEntries := [];
+        transactionEntries := [];
     };
 
     // Deposit ckBTC to vault
@@ -50,6 +80,17 @@ actor class VaultCanister() = this {
         let currentBalance = Option.get(vaultBalances.get(caller), 0);
         vaultBalances.put(caller, currentBalance + amount);
         totalDeposits += amount;
+
+        // Record transaction
+        let tx : VaultTransaction = {
+            txType = "deposit";
+            user = caller;
+            amount = amount;
+            timestamp = Time.now();
+            txId = transactionCounter;
+        };
+        transactions.put(transactionCounter, tx);
+        transactionCounter += 1;
 
         return #ok(currentBalance + amount);
     };
@@ -68,11 +109,31 @@ actor class VaultCanister() = this {
         vaultBalances.put(caller, currentBalance - amount);
         totalWithdrawals += amount;
 
+        // Record transaction
+        let tx : VaultTransaction = {
+            txType = "withdrawal";
+            user = caller;
+            amount = amount;
+            timestamp = Time.now();
+            txId = transactionCounter;
+        };
+        transactions.put(transactionCounter, tx);
+        transactionCounter += 1;
+
         return #ok(currentBalance - amount);
     };
 
     // Get vault balance
     public query func getBalance(user : Principal) : async Nat {
         return Option.get(vaultBalances.get(user), 0);
+    };
+
+    // Get transaction history
+    public query func getTransactionHistory(user : Principal) : async [VaultTransaction] {
+        let allTxs = Iter.toArray(transactions.vals());
+        return Array.filter<VaultTransaction>(
+            allTxs,
+            func(tx : VaultTransaction) : Bool { tx.user == user }
+        );
     };
 };
