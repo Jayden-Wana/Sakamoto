@@ -50,4 +50,15 @@ actor Profile {
             };
         };
     }
+
+    public shared (msg) func delete_profile() : async Result.Result<Text, Text> {
+        let id = msg.caller;
+        switch (Trie.get(profiles, id)) {
+            case (null) { return #err("Profile not found"); };
+            case (?profile) {
+                profiles := Trie.remove(profiles, id);
+                return #ok("Profile deleted successfully");
+            };
+        };
+    }
 }
