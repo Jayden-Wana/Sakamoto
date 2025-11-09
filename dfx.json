@@ -1,0 +1,26 @@
+{
+  "canisters": {
+    "Sakamoto_backend": {
+      "main": "src/Sakamoto_backend/main.mo",
+      "type": "motoko"
+    },
+    "Sakamoto_frontend": {
+      "dependencies": [
+        "Sakamoto_backend"
+      ],
+      "source": [
+        "src/Sakamoto_frontend/dist"
+      ],
+      "type": "assets",
+      "workspace": "Sakamoto_frontend"
+    }
+  },
+  "defaults": {
+    "build": {
+      "args": "",
+      "packtool": ""
+    }
+  },
+  "output_env_file": ".env",
+  "version": 1
+}
