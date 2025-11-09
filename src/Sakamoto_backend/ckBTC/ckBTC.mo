@@ -19,4 +19,15 @@ actor CkBTCVault {
         accounts := Trie.put(accounts, id, new_balance);
         return #ok(new_balance);
     }
+
+    public shared (msg) func withdraw(amount: Nat) : async Result.Result<Nat, Text> {
+        let id = msg.caller;
+        let balance = get_balance(id);
+        if (balance < amount) {
+            return #err("Insufficient funds");
+        };
+        let new_balance = balance - amount;
+        accounts := Trie.put(accounts, id, new_balance);
+        return #ok(new_balance);
+    }
 }
