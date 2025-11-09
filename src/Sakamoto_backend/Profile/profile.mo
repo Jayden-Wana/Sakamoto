@@ -26,4 +26,11 @@ actor Profile {
         profiles := Trie.put(profiles, id, new_profile);
         return #ok(new_profile);
     }
+
+    public query func read_profile(id: Principal) : async Result.Result<Profile, Text> {
+        switch (Trie.get(profiles, id)) {
+            case (null) { return #err("Profile not found"); };
+            case (?profile) { return #ok(profile); };
+        };
+    }
 }
