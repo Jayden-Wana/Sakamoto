@@ -16,6 +16,40 @@ import Hash "mo:base/Hash";
 
 actor class VaultCanister() = this {
     
+    // ckBTC Ledger canister interface
+    type Account = {
+        owner : Principal;
+        subaccount : ?Blob;
+    };
+
+    type TransferArgs = {
+        from_subaccount : ?Blob;
+        to : Account;
+        amount : Nat;
+        fee : ?Nat;
+        memo : ?Blob;
+        created_at_time : ?Nat64;
+    };
+
+    type TransferResult = {
+        #Ok : Nat;
+        #Err : TransferError;
+    };
+
+    type TransferError = {
+        #BadFee : { expected_fee : Nat };
+        #BadBurn : { min_burn_amount : Nat };
+        #InsufficientFunds : { balance : Nat };
+        #TooOld;
+        #CreatedInFuture : { ledger_time : Nat64 };
+        #Duplicate : { duplicate_of : Nat };
+        #TemporarilyUnavailable;
+        #GenericError : { error_code : Nat; message : Text };
+    };
+
+    // ckBTC Mainnet Ledger Canister ID
+    let ckBTC_LEDGER : Principal = Principal.fromText("mxzaz-hqaaa-aaaar-qaada-cai");
+    
     // Vault balance tracking
     private stable var totalDeposits : Nat = 0;
     private stable var totalWithdrawals : Nat = 0;
@@ -26,6 +60,9 @@ actor class VaultCanister() = this {
         Principal.equal,
         Principal.hash
     );
+
+    // Authorized canisters that can interact with vault
+    private stable var authorizedCanisters : [Principal] = [];
 
     // Transaction history
     type VaultTransaction = {
@@ -66,6 +103,23 @@ actor class VaultCanister() = this {
         );
         vaultBalanceEntries := [];
         transactionEntries := [];
+    };
+
+    // Check if caller is authorized
+    private func isAuthorized(caller : Principal) : Bool {
+        return Array.find<Principal>(
+            authorizedCanisters,
+            func(p : Principal) : Bool { p == caller }
+        ) != null;
+    };
+
+    // Add authorized canister (only callable by vault itself during init)
+    public shared(msg) func addAuthorizedCanister(canister : Principal) : async Result.Result<Text, Text> {
+        if (msg.caller != Principal.fromActor(this)) {
+            return #err("Unauthorized");
+        };
+        authorizedCanisters := Array.append(authorizedCanisters, [canister]);
+        return #ok("Canister authorized");
     };
 
     // Deposit ckBTC to vault
@@ -123,9 +177,42 @@ actor class VaultCanister() = this {
         return #ok(currentBalance - amount);
     };
 
+    // Transfer between accounts (for staking operations)
+    public shared(msg) func internalTransfer(from : Principal, to : Principal, amount : Nat) : async Result.Result<Text, Text> {
+        if (not isAuthorized(msg.caller)) {
+            return #err("Unauthorized caller");
+        };
+
+        let fromBalance = Option.get(vaultBalances.get(from), 0);
+        
+        if (amount > fromBalance) {
+            return #err("Insufficient balance");
+        };
+
+        let toBalance = Option.get(vaultBalances.get(to), 0);
+        
+        vaultBalances.put(from, fromBalance - amount);
+        vaultBalances.put(to, toBalance + amount);
+
+        return #ok("Transfer successful");
+    };
+
     // Get vault balance
     public query func getBalance(user : Principal) : async Nat {
         return Option.get(vaultBalances.get(user), 0);
+    };
+
+    // Get total vault stats
+    public query func getVaultStats() : async {
+        totalDeposits : Nat;
+        totalWithdrawals : Nat;
+        netBalance : Nat;
+    } {
+        return {
+            totalDeposits = totalDeposits;
+            totalWithdrawals = totalWithdrawals;
+            netBalance = totalDeposits - totalWithdrawals;
+        };
     };
 
     // Get transaction history
@@ -135,5 +222,10 @@ actor class VaultCanister() = this {
             allTxs,
             func(tx : VaultTransaction) : Bool { tx.user == user }
         );
+    };
+
+    // Get all balances (admin function)
+    public query func getAllBalances() : async [(Principal, Nat)] {
+        return Iter.toArray(vaultBalances.entries());
     };
 };
