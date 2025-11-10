@@ -1,12 +1,20 @@
 {
   "canisters": {
-    "Sakamoto_backend": {
-      "main": "src/Sakamoto_backend/main.mo",
+    "StakingCanister": {
+      "main": "src/Sakamoto_backend/Staking/StakingCanister.mo",
+      "type": "motoko"
+    },
+    "VaultCanister": {
+      "main": "src/Sakamoto_backend/ckBTCVault/VaultCanister",
+      "type": "motoko"
+    },
+    "ProfileCanister": {
+      "main": "src/Sakamoto_backend/Profile/ProfileCanister.mo",
       "type": "motoko"
     },
     "Sakamoto_frontend": {
       "dependencies": [
-        "Sakamoto_backend"
+        
       ],
       "source": [
         "src/Sakamoto_frontend/dist"
