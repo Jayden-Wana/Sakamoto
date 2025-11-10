@@ -1,7 +1,9 @@
 import { defineConfig } from 'vite';
+import { defineConfig } from 'vite';
 import { fileURLToPath, URL } from 'url';
 import environment from 'vite-plugin-environment';
 import dotenv from 'dotenv';
+import path from 'path';
 
 dotenv.config({ path: '../../.env' });
 
@@ -27,7 +29,7 @@ export default defineConfig({
   publicDir: "assets",
   plugins: [
     environment("all", { prefix: "CANISTER_" }),
-    environment("all", { prefix: "DFX_" }),
+    environment("all", { prefix: "DFX_") }),
   ],
   resolve: {
     alias: [
@@ -36,6 +38,10 @@ export default defineConfig({
         replacement: fileURLToPath(
           new URL("../declarations", import.meta.url)
         ),
+      },
+      {
+        find: '@',
+        replacement: path.resolve(__dirname, './src'),
       },
     ],
     dedupe: ['@dfinity/agent'],
