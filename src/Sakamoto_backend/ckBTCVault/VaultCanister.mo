@@ -1,6 +1,5 @@
 // ============================================
 // VAULT CANISTER - Manages ckBTC funds securely
-// Save as: VaultCanister.mo
 // ============================================
 
 import Principal "mo:base/Principal";
