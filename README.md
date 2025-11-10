@@ -1,4 +1,4 @@
-# `Sakamoto`
+# `Building Sakamoto on Encode Bitcoin DeFi Hackathon`
 
 Welcome to your new `Sakamoto` project and to the Internet Computer development community. By default, creating a new project adds this README and some template files to your project directory. You can edit these template files to customize your project and to include your own code to speed up the development cycle.
 
@@ -48,6 +48,15 @@ npm start
 ```
 
 Which will start a server at `http://localhost:8080`, proxying API requests to the replica at port 4943.
+
+### Frontend Development
+
+The frontend is built using React, Tailwind CSS, and PostCSS. The UI structure is organized into `pages` and `components` directories within `src/Sakamoto_frontend/src`.
+
+-   **`src/Sakamoto_frontend/src/pages`**: Contains top-level components that represent different views or routes of the application (e.g., `AuthPage.js`, `StakingPage.js`, `ProfilePage.js`).
+-   **`src/Sakamoto_frontend/src/components`**: Contains reusable UI components used across different pages (e.g., `Navbar.js`, `Footer.js`).
+
+Tailwind CSS is used for styling, configured via `tailwind.config.js` and processed by PostCSS (`postcss.config.js`). The main stylesheet `src/Sakamoto_frontend/src/index.scss` imports Tailwind's base, components, and utilities.
 
 ### Note on frontend environment variables
 

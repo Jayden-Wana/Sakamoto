@@ -1,40 +1,22 @@
-import { html, render } from 'lit-html';
-import { Sakamoto_backend } from 'declarations/Sakamoto_backend';
-import logo from './logo2.svg';
+import React from 'react';
+import Navbar from './components/Navbar';
+import Footer from './components/Footer';
+import AuthPage from './pages/AuthPage';
+import StakingPage from './pages/StakingPage';
+import ProfilePage from './pages/ProfilePage';
 
-class App {
-  greeting = '';
-
-  constructor() {
-    this.#render();
-  }
-
-  #handleSubmit = async (e) => {
-    e.preventDefault();
-    const name = document.getElementById('name').value;
-    this.greeting = await Sakamoto_backend.greet(name);
-    this.#render();
-  };
-
-  #render() {
-    let body = html`
-      <main>
-        <img src="${logo}" alt="DFINITY logo" />
-        <br />
-        <br />
-        <form action="#">
-          <label for="name">Enter your name: &nbsp;</label>
-          <input id="name" alt="Name" type="text" />
-          <button type="submit">Click Me!</button>
-        </form>
-        <section id="greeting">${this.greeting}</section>
+function App() {
+  return (
+    <div className="min-h-screen bg-gray-100 flex flex-col">
+      <Navbar />
+      <main className="flex-grow container mx-auto p-4">
+        <AuthPage />
+        <StakingPage />
+        <ProfilePage />
       </main>
-    `;
-    render(body, document.getElementById('root'));
-    document
-      .querySelector('form')
-      .addEventListener('submit', this.#handleSubmit);
-  }
+      <Footer />
+    </div>
+  );
 }
 
 export default App;
