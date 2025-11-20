@@ -1,4 +1,4 @@
-import React from 'react';
+import { Routes, Route } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import AuthPage from './pages/AuthPage';
@@ -10,9 +10,11 @@ function App() {
     <div className="min-h-screen bg-gray-100 flex flex-col">
       <Navbar />
       <main className="flex-grow container mx-auto p-4">
-        <AuthPage />
-        <StakingPage />
-        <ProfilePage />
+        <Routes>
+          <Route path="/" element={<AuthPage />} />
+          <Route path="/staking" element={<StakingPage />} />
+          <Route path="/profile" element={<ProfilePage />} />
+        </Routes>
       </main>
       <Footer />
     </div>
